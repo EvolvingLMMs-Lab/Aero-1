@@ -36,11 +36,7 @@ In this release, our primary focus is on developing an audio model capable of ha
 
 ### Long ASR
 
-<div style="text-align: center;">
- <iframe width="780" height="415"
- src="https://www.youtube.com/embed/uYyoEB6Xu58">
- </iframe>
-</div>
+[Example Youtube](https://www.youtube.com/embed/uYyoEB6Xu58)
 
 A common approach for current long-form ASR tasks is to split the audio into smaller, processable chunks and perform ASR on each segment individually. However, with the advancement of large language models (LLMs), long-context understanding has become increasingly important. We argue that a model's ability to process long audio sequences continuously is essential for effective audio understanding and should be considered a critical capability. To demonstrate this, we set up a simple use case using examples from an NVIDIA conference and calculate the WER with respect to the auto-generated YouTube subtitles.
 
