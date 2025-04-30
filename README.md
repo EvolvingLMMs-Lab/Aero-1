@@ -1,3 +1,7 @@
+<p align="center" width="100%">
+<img src="https://i.postimg.cc/k5Ls32WK/aero-1-audio.png"  width="80%" height="80%">
+</p>
+
 ## What is Aero Audio?
 
 [📚 Blog](https://www.lmms-lab.com/posts/aero_audio/) | [🤗 Model Checkpoints](https://huggingface.co/lmms-lab/Aero-1-Audio-1.5B) | [📖 Evaluation Results](https://github.com/EvolvingLMMs-Lab/lmms-eval/tree/dev/aero) | [📚 Cookbook](https://www.lmms-lab.com/posts/lmms-lab-docs/aero_audio/)
