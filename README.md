@@ -4,7 +4,7 @@
 
 ## What is Aero-1-Audio?
 
-[📚 Blog](https://www.lmms-lab.com/posts/aero_audio/) | [🤗 Model Checkpoints](https://huggingface.co/lmms-lab/Aero-1-Audio-1.5B) | [📖 Evaluation Results](https://github.com/EvolvingLMMs-Lab/lmms-eval/tree/dev/aero) | [📚 Cookbook](https://www.lmms-lab.com/posts/lmms-lab-docs/aero_audio/)
+[Github](https://github.com/EvolvingLMMs-Lab/Aero-1/blob/main/README.md) | [Playground](https://huggingface.co/spaces/lmms-lab/Aero-1-Audio-Demo) | [Models](https://huggingface.co/lmms-lab/Aero-1-Audio-1.5B) | [Evaluation Results](https://github.com/EvolvingLMMs-Lab/lmms-eval/pull/658) | [Cookbook](https://www.lmms-lab.com/posts/lmms-lab-docs/aero_audio/)
 
 `Aero-1-Audio` is a compact yet powerful audio-language model designed for a wide range of audio tasks, including automatic speech recognition (ASR), audio understanding, and instruction following. It is part of the `Aero-1 series`, the first generation of lightweight multimodal models developed by `LMMs-Lab`, with future expansions planned across additional modalities.
 
