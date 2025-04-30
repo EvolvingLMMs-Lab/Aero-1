@@ -239,7 +239,7 @@ We evaluate our model on AMI, Earnings22, LibriSpeech, SPGISpeech, and TedLium. 
 
 We then test our model's understanding result across 3 dimensions, Audio Analysis and Understanding, Speech Instruction, and Audio Scene Understanding
 
-<table class="tg"><thead>
+<table class="tg" style="text-align: center;"><thead>
   <tr>
     <th class="tg-0pky">Model</th>
     <th class="tg-0pky" style="width: 20px;">Parameters</th>
