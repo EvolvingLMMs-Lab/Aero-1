@@ -2,18 +2,16 @@
 <img src="https://i.postimg.cc/k5Ls32WK/aero-1-audio.png"  width="80%" height="80%">
 </p>
 
-## What is Aero Audio?
+## What is Aero-1-Audio?
 
 [📚 Blog](https://www.lmms-lab.com/posts/aero_audio/) | [🤗 Model Checkpoints](https://huggingface.co/lmms-lab/Aero-1-Audio-1.5B) | [📖 Evaluation Results](https://github.com/EvolvingLMMs-Lab/lmms-eval/tree/dev/aero) | [📚 Cookbook](https://www.lmms-lab.com/posts/lmms-lab-docs/aero_audio/)
 
-`Aero-1-Audio` is a compact audio model adept at various audio tasks, including speech recognition, audio understanding, and following audio instructions. 
+`Aero-1-Audio` is a compact yet powerful audio-language model designed for a wide range of audio tasks, including automatic speech recognition (ASR), audio understanding, and instruction following. It is part of the `Aero-1 series`, the first generation of lightweight multimodal models developed by `LMMs-Lab`, with future expansions planned across additional modalities.
 
-1. Built upon the Qwen-2.5-1.5B language model, Aero delivers strong performance across multiple audio benchmarks while remaining parameter-efficient, even compared with larger advanced models like Whisper and Qwen-2-Audio and Phi-4-Multimodal, or commercial services like ElevenLabs/Scribe.
-
-2. Aero is trained within one day on 16 H100 GPUs using just 50k hours of audio data. Our insight suggests that audio model training could be sample efficient with high quality and filtered data.
-
-3. Aero can accurately perform ASR and audio understanding on continuous audio inputs up to 15 minutes in length, which we find the scenario is still a challenge for other models.
-
+1. Built upon Qwen-2.5-1.5B, Aero-1-Audio achieves competitive performance on multiple audio benchmarks while maintaining exceptional parameter efficiency. **It performs on par with or even surpasses larger models such as Whisper, Qwen-2-Audio, and Phi-4-Multimodal**, as well as commercial services like ElevenLabs and Scribe.
+2. **Trained in just one day** on 16 H100 GPUs using 50K hours of high-quality, filtered audio data, Aero-1-Audio demonstrates that audio model training can be highly sample-efficient when using curated datasets.
+3. Aero-1-Audio handles **continuous audio inputs of up to 15 minutes without splitting**, delivering accurate ASR and understanding—a capability that remains challenging for many existing models.
+   
 ## ASR & Audio Understanding Performance
 
 We evaluate our model performance on multiple dimensions and different benchmarks. Let's first take a look at its overall performance compare with other models
