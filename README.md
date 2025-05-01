@@ -14,7 +14,7 @@
    
 ## ASR & Audio Understanding Performance
 
-We evaluate our model performance on multiple dimensions and different benchmarks. Let's first take a look at its overall performance compare with other models
+We evaluate our model performance on multiple dimensions and different benchmarks. Let's first take a look at its overall performance compared with other models
 
 [![ASR-Understanding-Compare.png](https://i.postimg.cc/ZnxKf7kx/Picture_1.png)](https://postimg.cc/ZC077jhK)
 [![ASR-Detail.png](https://i.postimg.cc/8ztw8Ndq/Picture-2.png)](https://postimg.cc/TKgcF4NG)
@@ -28,12 +28,12 @@ We present the contributions of our data mixture here. Our SFT data mixture incl
 [![Data-distribution.png](https://i.postimg.cc/MZbP0f7J/Data-distribution.png)](https://postimg.cc/c6CB0HkF)
 [![training-time.png](https://i.postimg.cc/Hn26TFYk/training-time.png)](https://postimg.cc/XBrf8HBR)
 
-*The hours of some training datasets are estimated and may not be fully accurate
+*The hours of some training datasets are estimated and may not be fully accurate*
 <br>
 One of the key strengths of our training recipe lies in the quality and quantity of our data. Our training dataset consists of approximately 5 billion tokens, corresponding to around 50,000 hours of audio. Compared to models such as Qwen-Omni and Phi-4, our dataset is over 100 times smaller, yet our model achieves competitive performance. All data is sourced from publicly available open-source datasets, highlighting the sample efficiency of our training approach. A detailed breakdown of our data distribution is provided below, along with comparisons to other models.
 
 
-## What's insightful
+## What's Insightful
 In this release, our primary focus is on developing an audio model capable of handling multiple audio tasks. The following examples showcase its core abilities across tasks such as audio understanding and speech recognition. Most notably, we highlight the model's capability to perform long-form ASR, as demonstrated in the example below.
 
 ### Long ASR
@@ -130,7 +130,7 @@ In the previous release, LibriSpeech split their audio files into smaller chunks
 We present the evaluation of various models on the unchunked LibriSpeech dataset. The average result is calculated by averaging the WER score differences across the same splits. All models show some degradation when handling longer audio, whereas our model exhibits the least amount of performance drop.
 
 
-## Evaluation Result
+## Evaluation Results
 
 We then present the full evaluation result here with the evaluation scores
 
@@ -151,7 +151,7 @@ We then present the full evaluation result here with the evaluation scores
     <td class="tg-c3ow">LibriSpeech<br>Clean</td>
     <td class="tg-c3ow">LibriSpeech<br>Other</td>
     <td class="tg-c3ow">SPGispeech</td>
-    <td class="tg-c3ow">Tedlium</td>
+    <td class="tg-c3ow">TED-LIUM</td>
     <td class="tg-c3ow"></td>
   </tr>
   <tr>
@@ -237,7 +237,7 @@ We evaluate our model on AMI, Earnings22, LibriSpeech, SPGISpeech, and TedLium. 
 
 ### Audio Understanding Result
 
-We then test our model's understanding result across 3 dimensions, Audio Analysis and Understanding, Speech Instruction, and Audio Scene Understanding
+We then test our model's understanding results across 3 dimensions, Audio Analysis and Understanding, Speech Instruction, and Audio Scene Understanding
 
 <table class="tg"><thead>
   <tr>
