@@ -6,7 +6,7 @@ from transformers.models.qwen2.modeling_qwen2 import apply_rotary_pos_emb
 try:
     from flash_attn import flash_attn_func
 except ImportError:
-    print("flash-attn is not installed. Please install it to use the flash attention implementation.")
+    print("flash-attn is not installed")
 
 
 def _bind_method_to_module(module, method_name: str, new_method: Callable):

@@ -52,8 +52,10 @@ def transcribe_with_timestamp(
         pad_token_id=pad_token_id,
         max_new_tokens=max_new_tokens,
     )
-    transcript = processor.batch_decode(outputs[:, inputs["input_ids"].shape[1] :], skip_special_tokens=True)
+    prompt_len = inputs["input_ids"].shape[1]
+    transcript = processor.batch_decode(outputs[:, prompt_len:], skip_special_tokens=True)
 
+    # I have implemented a simple monkey patch with fa2, but it is not recommended to use it.
     if model.config._attn_implementation == "flash_attention_2":
         apply_flash_attn_with_attn_scores(model, model.config.model_type)
 
@@ -69,16 +71,24 @@ def transcribe_with_timestamp(
         )
 
     audio_token_id = processor.tokenizer.convert_tokens_to_ids(processor.audio_token)
-    audio_mask = inputs["input_ids"] == audio_token_id
-    audio_seq_len = audio_mask.sum(dim=-1)
+    assert inputs["input_ids"].shape[0] == 1, "Batch Size > 1 is not supported for now. Still working on it ..."
+    audio_mask = (inputs["input_ids"] == audio_token_id).squeeze(0)
+    text_mask = inputs["attention_mask"]
+    # Prompt before generation are all false
+    text_mask[:, :prompt_len] = 0
+    text_mask = text_mask.squeeze(0)
+
     attention_weights = forward_output.attentions
     selected_weights = []
-    for weight in attention_weights:
-        audio_tokens_attentions = weight[audio_mask]
-        selected_weights.append(weight[audio_mask])
+    # We need to find the attention for text across audio
+    # In original implementation, it is done by using the cross attn module
+    # Here we have self attn, which we can get the audio on first dim
+    # then text on the second dim
+    for weights in attention_weights:
+        weights = weights[:, :, audio_mask, :]
+        weights = weights[:, :, :, text_mask]
+        selected_weights.append(weights)
 
-    import pdb
-
-    pdb.set_trace()
+    selected_weights = torch.cat(selected_weights, dim=0)
 
     return transcript, outputs, inputs
