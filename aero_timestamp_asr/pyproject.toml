@@ -25,12 +25,14 @@ dependencies = [
     "hf_transfer",
     "dtw-python",
     "accelerate",
-    "torch==2.5.1"
+    "torch==2.5.1",
+    "librosa",
+    "soundfile",
 ]
 
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["aero_timestamp_asr*"]
 include = ["*"]
 exclude = [
     "test"
