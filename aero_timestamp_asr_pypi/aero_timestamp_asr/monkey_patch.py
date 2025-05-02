@@ -1,12 +1,41 @@
-from typing import Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 import torch
-from transformers.models.qwen2 import apply_rotary_pos_emb
+from transformers.models.qwen2.modeling_qwen2 import apply_rotary_pos_emb
 
 try:
     from flash_attn import flash_attn_func
 except ImportError:
     print("flash-attn is not installed. Please install it to use the flash attention implementation.")
+
+
+def _bind_method_to_module(module, method_name: str, new_method: Callable):
+    # Binds a new method to a module instance so that self is passed as the first argument
+    module.__dict__[method_name] = new_method.__get__(module, module.__class__)
+
+
+def apply_flash_attn_with_attn_scores_on_aero(model):
+    """
+    Binds the flash attention implementation with attention scores to the Aero model.
+    """
+    for layer in model.language_model.model.layers:
+        # Bind the flash attention implementation to the layer
+        _bind_method_to_module(layer.self_attn, "forward", qwen2_flash_attn_with_attn_scores)
+
+
+APPLY_MAP = {
+    "aero": apply_flash_attn_with_attn_scores_on_aero,
+}
+
+
+def apply_flash_attn_with_attn_scores(model, model_type: str):
+    """
+    Applies the flash attention implementation with attention scores to the model.
+    """
+    if model_type in APPLY_MAP:
+        APPLY_MAP[model_type](model)
+    else:
+        raise ValueError(f"Model type {model_type} is not supported for flash attention.")
 
 
 def qwen2_flash_attn_with_attn_scores(
@@ -33,12 +62,12 @@ def qwen2_flash_attn_with_attn_scores(
         cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
         key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
+    dropout = 0.01
     attn_output, softmax_lse, S_dmask = flash_attn_func(
-        query_states,
-        key_states,
-        value_states,
-        attention_mask,
-        dropout=0.01,  # Force dropout to 0.01 to avoid return Nan for flash-attn
+        query_states.transpose(1, 2),
+        key_states.transpose(1, 2),
+        value_states.transpose(1, 2),
+        dropout,  # Force dropout to 0.01 to avoid return Nan for flash-attn
         causal=True,
         softmax_scale=None,
         return_attn_probs=True,

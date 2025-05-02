@@ -3,7 +3,6 @@ from typing import Literal, Tuple
 from transformers import (AutoModelForCausalLM, AutoProcessor, PreTrainedModel,
                           ProcessorMixin)
 
-from .monkey_patch import qwen2_flash_attn_with_attn_scores
 
 
 def load_aero_model(
@@ -22,12 +21,6 @@ def load_aero_model(
     Returns:
         PreTrainedModel: The loaded Aero model.
     """
-    if attn_implementation == "flash_attention_2":
-        # Monkey patch the QwenAttention to use flash attention with attention scores
-        from transformers.models.qwen2 import QwenAttention
-
-        QwenAttention.forward = qwen2_flash_attn_with_attn_scores
-
     # Load the model
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
