@@ -1,5 +1,5 @@
 
-from aero_timestamp_asr import load_aero_model, transcribe
+from aero_timestamp_asr import load_aero_model, transcribe_with_timestamp
 import librosa
 
 def load_audio():
@@ -9,7 +9,7 @@ def load_audio():
 def main():
     model, processor = load_aero_model("lmms-lab/Aero-1-Audio", attn_implementation="flash_attention_2")
     audio = load_audio()
-    transcript = transcribe(audio, model, processor)
+    transcript, data = transcribe_with_timestamp(audio, model, processor, plot=True, save_path="output.png")
 
 if __name__ == "__main__":
     main()
