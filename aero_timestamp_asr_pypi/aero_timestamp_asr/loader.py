@@ -20,10 +20,6 @@ def load_aero_model(
     Returns:
         PreTrainedModel: The loaded Aero model.
     """
-    if attn_implementation == "flash_attention_2":
-        print(
-            "[Warning] Using flash attention 2 implementation. This is not recommended because fa2 S_dmask is not stable. You are recommended to use eager implementation."
-        )
     # Load the model
     model = AutoModelForCausalLM.from_pretrained(
         model_name,

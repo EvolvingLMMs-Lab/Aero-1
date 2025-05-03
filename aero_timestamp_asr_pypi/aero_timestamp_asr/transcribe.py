@@ -1,12 +1,59 @@
 from typing import Any, Dict, Tuple, Union
 
 import librosa
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from dtw import dtw
 from transformers import PreTrainedModel, ProcessorMixin
+from transformers.models.qwen2.modeling_qwen2 import repeat_kv
 
-from .monkey_patch import apply_flash_attn_with_attn_scores
-from .utils import prepare_messages, split_audio
+from .utils import (plot_timestamp_graph, prepare_messages, split_audio,
+                    split_tokens_on_spaces)
+
+
+def get_QKs(
+    model: PreTrainedModel,
+    inputs: Dict[str, torch.Tensor],
+) -> torch.Tensor:
+    """
+    Get the QK matrices from the model.
+    Args:
+        model (PreTrainedModel): The Aero model.
+        inputs (Dict[str, torch.Tensor]): The inputs to the model.
+    Returns:
+        torch.Tensor: The QK matrices.
+    """
+    Qs = [None] * model.config.text_config.num_hidden_layers
+    Ks = [None] * model.config.text_config.num_hidden_layers
+    for i, layer in enumerate(model.language_model.model.layers):
+        layer.self_attn.q_proj.register_forward_hook(
+            lambda _, input, output, index=i: Qs.__setitem__(index, output[0].detach().clone())
+        )
+        layer.self_attn.k_proj.register_forward_hook(
+            lambda _, input, output, index=i: Ks.__setitem__(index, output[0].detach().clone())
+        )
+
+    with torch.inference_mode():
+        _ = model(
+            **inputs,
+        )
+
+    Qs = torch.stack(Qs, dim=0)
+    Ks = torch.stack(Ks, dim=0)
+    hidden_shape = Qs.shape[:-1]
+    head_dim = getattr(
+        model.config.text_config,
+        "head_dim",
+        model.config.text_config.hidden_size // model.config.text_config.num_attention_heads,
+    )
+    num_key_value_groups = model.config.text_config.num_attention_heads // model.config.text_config.num_key_value_heads
+    Qs = Qs.view(*hidden_shape, -1, head_dim).transpose(1, 2)
+    Ks = Ks.view(*hidden_shape, -1, head_dim).transpose(1, 2)
+    Ks = repeat_kv(Ks, num_key_value_groups)
+    QKs = torch.matmul(Qs, Ks.transpose(-1, -2))
+
+    return QKs
 
 
 def transcribe_with_timestamp(
@@ -18,6 +65,8 @@ def transcribe_with_timestamp(
     eos_token_id: int = 151645,
     pad_token_id: int = 151643,
     max_new_tokens: int = 4096,
+    plot: bool = False,
+    save_path: str = None,
     **kwargs,
 ) -> Tuple[str, torch.Tensor, Dict[str, Any]]:
     """
@@ -35,6 +84,8 @@ def transcribe_with_timestamp(
     Returns:
         Tuple[str, torch.Tensor, Dict[Any]]: The transcript, model outputs, and inputs.
     """
+    # Because we do pooling, so instead of 2 we times 4
+    AUDIO_TIME_PER_TOKEN = processor.audio_processor.hop_length * 4 / processor.audio_processor.sampling_rate
     if isinstance(audio, str):
         audio = librosa.load(audio, sr=sampling_rate)[0]
 
@@ -55,40 +106,50 @@ def transcribe_with_timestamp(
     prompt_len = inputs["input_ids"].shape[1]
     transcript = processor.batch_decode(outputs[:, prompt_len:], skip_special_tokens=True)
 
-    # I have implemented a simple monkey patch with fa2, but it is not recommended to use it.
-    if model.config._attn_implementation == "flash_attention_2":
-        apply_flash_attn_with_attn_scores(model, model.config.model_type)
-
     # Another forward to get the attention scores for full sequences
 
     inputs["attention_mask"] = torch.ones_like(outputs, dtype=torch.bool, device=inputs["input_ids"].device)
     inputs["input_ids"] = outputs
 
-    with torch.inference_mode():
-        forward_output = model(
-            **inputs,
-            output_attentions=True,
-        )
+    QKs = get_QKs(model, inputs)
 
     audio_token_id = processor.tokenizer.convert_tokens_to_ids(processor.audio_token)
     assert inputs["input_ids"].shape[0] == 1, "Batch Size > 1 is not supported for now. Still working on it ..."
+    words, word_tokens = split_tokens_on_spaces(outputs[0, prompt_len:], processor.tokenizer)
+
     audio_mask = (inputs["input_ids"] == audio_token_id).squeeze(0)
     text_mask = inputs["attention_mask"]
     # Prompt before generation are all false
     text_mask[:, :prompt_len] = 0
     text_mask = text_mask.squeeze(0)
 
-    attention_weights = forward_output.attentions
-    selected_weights = []
-    # We need to find the attention for text across audio
-    # In original implementation, it is done by using the cross attn module
-    # Here we have self attn, which we can get the audio on first dim
-    # then text on the second dim
-    for weights in attention_weights:
-        weights = weights[:, :, audio_mask, :]
-        weights = weights[:, :, :, text_mask]
-        selected_weights.append(weights)
+    QKs = QKs[:, :, audio_mask, :][:, :, :, text_mask]
+    weights = QKs.softmax(dim=-1)
+    matrix = weights.mean(axis=(0, 1))
+    matrix = matrix.transpose(0, 1).contiguous()
+    alignment = dtw(-matrix.cpu().double().numpy())
+    jumps = np.pad(np.diff(alignment.index1s), (1, 0), constant_values=1).astype(bool)
+    jump_times = alignment.index2s[jumps] * AUDIO_TIME_PER_TOKEN
 
-    selected_weights = torch.cat(selected_weights, dim=0)
+    word_boundaries = np.pad(np.cumsum([len(t) for t in word_tokens[:-1]]), (1, 0))
+    begin_times = jump_times[word_boundaries[:-1]]
+    end_times = jump_times[word_boundaries[1:]]
 
-    return transcript, outputs, inputs
+    data = [
+        dict(word=word, begin=begin, end=end)
+        for word, begin, end in zip(words, begin_times, end_times)
+        if not word.startswith("<|") and word.strip() not in ".,!?、。"
+    ]
+
+    if plot:
+        plot_timestamp_graph(
+            matrix,
+            alignment,
+            words,
+            word_tokens,
+            AUDIO_TIME_PER_TOKEN=AUDIO_TIME_PER_TOKEN,
+            save_path=save_path,
+        )
+        plt.show()
+
+    return transcript, data
